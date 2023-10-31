@@ -13,6 +13,9 @@ from .const import (
     PVS_SENSORS,
     METER_SENSORS,
     INVERTER_SENSORS,
+    STATE_CLASS_TOTAL_INCREASING,
+    INVERTER_STATE,
+    WORKING_STATE
 )
 from .entity import SunPowerPVSEntity, SunPowerMeterEntity, SunPowerInverterEntity
 
@@ -252,3 +255,10 @@ class SunPowerInverterBasic(SunPowerInverterEntity, SensorEntity):
     def native_value(self):
         """Get the current value"""
         return self.coordinator.data[INVERTER_DEVICE_TYPE][self.base_unique_id].get(self._field, None)
+
+    @property
+    def available(self):
+        if self.state_class == STATE_CLASS_TOTAL_INCREASING:
+            return True
+
+        return self.coordinator.last_update_success and self.coordinator.data[INVERTER_DEVICE_TYPE][self.base_unique_id][INVERTER_STATE] == WORKING_STATE
