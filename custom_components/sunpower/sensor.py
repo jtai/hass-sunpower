@@ -1,7 +1,7 @@
 """Support for Sunpower sensors."""
 import logging
 
-from homeassistant.components.sensor import SensorEntity, SensorDeviceClass
+from homeassistant.components.sensor import SensorEntity, SensorStateClass, SensorDeviceClass
 
 from .const import (
     DOMAIN,
@@ -13,6 +13,8 @@ from .const import (
     PVS_SENSORS,
     METER_SENSORS,
     INVERTER_SENSORS,
+    INVERTER_STATE,
+    WORKING_STATE
 )
 from .entity import SunPowerPVSEntity, SunPowerMeterEntity, SunPowerInverterEntity
 
@@ -267,3 +269,10 @@ class SunPowerInverterBasic(SunPowerInverterEntity, SensorEntity):
             except ValueError:
                 pass #sometimes this value might be something like 'unavailable'
         return self.coordinator.data[INVERTER_DEVICE_TYPE][self.base_unique_id].get(self._field, None)
+
+    @property
+    def available(self):
+        if self.state_class == SensorStateClass.TOTAL_INCREASING:
+            return True
+
+        return self.coordinator.last_update_success and self.coordinator.data[INVERTER_DEVICE_TYPE][self.base_unique_id][INVERTER_STATE] == WORKING_STATE
