@@ -4,6 +4,7 @@ import logging
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
+    SensorStateClass,
     SensorEntity,
 )
 
@@ -16,6 +17,8 @@ from .const import (
     SUNPOWER_PRODUCT_NAMES,
     SUNPOWER_SENSORS,
     SUNVAULT_SENSORS,
+    INVERTER_DEVICE_TYPE,
+    WORKING_STATE,
 )
 from .entity import SunPowerEntity
 
@@ -185,3 +188,13 @@ class SunPowerSensor(SunPowerEntity, SensorEntity):
             except (ValueError, KeyError):
                 pass  # sometimes this value might be something like 'unavailable'
         return self.coordinator.data[self._device_type][self.base_unique_id].get(self._field, None)
+
+    @property
+    def available(self):
+        if self._device_type != INVERTER_DEVICE_TYPE:
+            return True
+
+        if self.state_class != SensorStateClass.MEASUREMENT:
+            return True
+        
+        return self.coordinator.last_update_success and self.coordinator.data[self._device_type][self.base_unique_id]["STATE"] == WORKING_STATE
